@@ -87,7 +87,7 @@ const pays = ref([])
 
 const handleRegister = async () => {
   try {
-    await axios.post(`${import.meta.env.VITE_API_URL}/api/administrateurs-generaux`, form.value)
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/fournisseurs`, form.value)
     alert('Compte créé avec succès ! Vous pouvez maintenant vous connecter.')
     window.location.href = '/'
   } catch (error) {
