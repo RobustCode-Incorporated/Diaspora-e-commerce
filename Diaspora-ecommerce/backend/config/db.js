@@ -1,7 +1,19 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-const databaseUrl = process.env.DATABASE_URL || 'sqlite:dev.sqlite';
-const sequelize = new Sequelize(databaseUrl, { logging: false });
+// Connexion PostgreSQL via DATABASE_URL
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  logging: false, // désactive les logs SQL, mettre true pour debug
+});
 
-module.exports = sequelize;
+const connectDB = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ PostgreSQL connecté avec succès');
+  } catch (error) {
+    console.error('❌ Impossible de se connecter à PostgreSQL :', error);
+  }
+};
+
+module.exports = { sequelize, connectDB };

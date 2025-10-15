@@ -2,28 +2,29 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-const sequelize = require('./config/db');
-const models = require('./models');
+const { connectDB, sequelize } = require('./config/db');
+const { User, Product, Pays } = require('./models');
 
-const authRoutes = require('./routes/auth');
-const productsRoutes = require('./routes/products');
-const ordersRoutes = require('./routes/orders');
+const productRoutes = require('./routes/products');
+const paysRoutes = require('./routes/pays');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productsRoutes);
-app.use('/api/orders', ordersRoutes);
+// Routes
+app.use('/api/products', productRoutes);
+app.use('/api/pays', paysRoutes);
 
+
+// Connexion DB + démarrage serveur
 const PORT = process.env.PORT || 4000;
 
 (async () => {
-  try {
-    await sequelize.sync({ alter: true });
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  } catch (err) {
-    console.error('Failed to start server', err);
-  }
+  await connectDB();
+
+  // Synchronisation optionnelle si besoin
+  // await sequelize.sync({ alter: true });
+
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 })();

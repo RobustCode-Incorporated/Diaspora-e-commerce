@@ -1,23 +1,14 @@
 const { DataTypes } = require('sequelize');
-const bcrypt = require('bcrypt');
-
 module.exports = (sequelize) => {
-  const User = sequelize.define('User', {
+  return sequelize.define('User', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    nom: { type: DataTypes.STRING, allowNull: false },
+    prenom: { type: DataTypes.STRING, allowNull: false },
+    postnom: { type: DataTypes.STRING },
+    username: { type: DataTypes.STRING, unique: true, allowNull: false },
+    email: { type: DataTypes.STRING, unique: true, allowNull: false },
+    telephone: { type: DataTypes.STRING },
     password: { type: DataTypes.STRING, allowNull: false },
-    role: { type: DataTypes.ENUM('buyer','seller'), defaultValue: 'buyer' }
-  });
-
-  User.beforeCreate(async (user) => {
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
-  });
-
-  User.prototype.validatePassword = function(password) {
-    return bcrypt.compare(password, this.password);
-  }
-
-  return User;
+    role: { type: DataTypes.STRING, allowNull: false },
+  }, { tableName: 'users', timestamps: true });
 };
