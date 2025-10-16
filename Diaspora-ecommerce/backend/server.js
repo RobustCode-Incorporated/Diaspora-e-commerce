@@ -9,6 +9,7 @@ const { connectDB } = require('./config/db');
 const productRoutes = require('./routes/products');
 const paysRoutes = require('./routes/pays');
 const fournisseursRoutes = require('./routes/fournisseurs');
+const citoyensRoutes = require('./routes/citoyens');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/products', productRoutes);
 app.use('/api/pays', paysRoutes);
 app.use('/api/fournisseurs', fournisseursRoutes);
+app.use('/api/citoyens', citoyensRoutes);
 
 // ✅ Route de test (optionnelle)
 app.get('/', (req, res) => {

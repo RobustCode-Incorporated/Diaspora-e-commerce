@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/user.dart';
+import '../models/product.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
-
   HomeScreen({required this.user});
 
   @override
@@ -13,7 +13,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List products = [];
+  List<Product> products = [];
+  List<Product> cart = [];
   bool loading = true;
 
   @override
@@ -29,26 +30,31 @@ class _HomeScreenState extends State<HomeScreen> {
         Uri.parse('http://localhost:4000/api/products'),
         headers: {'Content-Type': 'application/json'},
       );
+
       if (res.statusCode == 200) {
+        final List data = json.decode(res.body);
         setState(() {
-          products = json.decode(res.body);
+          products = data.map((p) => Product.fromJson(p)).toList();
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur chargement produits')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Erreur chargement produits')));
       }
     } catch (err) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $err')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Erreur: $err')));
     } finally {
       setState(() => loading = false);
     }
   }
 
+  void addToCart(Product product) {
+    setState(() => cart.add(product));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('${product.name} ajouté au panier')));
+  }
+
   void logout() {
-    // Déconnexion
     Navigator.pushReplacementNamed(context, '/login');
   }
 
@@ -56,49 +62,111 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Accueil'),
-        backgroundColor: Color(0xFF0E2C5A),
+        title: Text('Bienvenue ${widget.user.name}'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: logout,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: Icon(Icons.shopping_cart),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/cart', arguments: cart);
+                },
+              ),
+              if (cart.isNotEmpty)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.red,
+                    child: Text(
+                      cart.length.toString(),
+                      style: TextStyle(fontSize: 12, color: Colors.white),
+                    ),
+                  ),
+                ),
+            ],
           ),
+          IconButton(icon: Icon(Icons.logout), onPressed: logout),
         ],
       ),
       body: loading
           ? Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: fetchProducts,
-              child: ListView.builder(
-                padding: EdgeInsets.all(16),
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return Card(
-                    margin: EdgeInsets.only(bottom: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ListTile(
-                      leading: product['image_url'] != null
-                          ? Image.network(
-                              'http://localhost:4000/uploads/${product['image_url']}',
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
+          : products.isEmpty
+              ? Center(child: Text('Aucun produit disponible'))
+              : RefreshIndicator(
+                  onRefresh: fetchProducts,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(16),
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return Card(
+                        margin: EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Image du produit
+                            Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(8),
+                                  bottomLeft: Radius.circular(8),
+                                ),
+                                color: Colors.grey[200],
+                              ),
+                              child: product.imageUrl != null
+                                  ? Image.network(
+                                      Uri.encodeFull(
+                                          'http://localhost:4000/uploads/${product.imageUrl!}'),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          Icon(Icons.broken_image, size: 50),
+                                    )
+                                  : Icon(Icons.image_not_supported, size: 50),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      product.name,
+                                      style: TextStyle(
+                                          fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 6),
+                                    Text(product.description),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      '${product.price.toStringAsFixed(2)} €',
+                                      style: TextStyle(
+                                          fontSize: 16, fontWeight: FontWeight.bold),
+                                    ),
+                                    Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: IconButton(
+                                        icon: Icon(Icons.add_shopping_cart),
+                                        onPressed: () => addToCart(product),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
                             )
-                          : null,
-                      title: Text(product['name']),
-                      subtitle: Text(product['description']),
-                      trailing: Text(
-                        '${product['price'].toStringAsFixed(2)} €',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }

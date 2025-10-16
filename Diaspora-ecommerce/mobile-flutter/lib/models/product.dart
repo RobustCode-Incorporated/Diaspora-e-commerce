@@ -16,10 +16,18 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      price: (json['price'] as num).toDouble(),
-      imageUrl: json['image_url'],
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      price: (json['price'] is int)
+          ? (json['price'] as int).toDouble()
+          : (json['price'] is double)
+              ? json['price']
+              : double.tryParse(json['price'].toString()) ?? 0.0,
+      imageUrl: json['image_url'] != null
+          ? 'http://localhost:4000/uploads/${json['image_url']}'
+          : null,
     );
   }
+
+  String formattedPrice() => '${price.toStringAsFixed(2)} €';
 }

@@ -21,25 +21,31 @@ class _LoginScreenState extends State<LoginScreen> {
         Uri.parse('http://localhost:4000/api/citoyens/login'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'email': _emailController.text,
-          'password': _passwordController.text,
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text.trim(),
         }),
       );
 
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
-        final user = User.fromJson(data['user'], data['token']);
+
+        // Récupération des informations utilisateur
+        final userJson = data['user'] as Map<String, dynamic>;
+        final token = data['token'] as String;
+
+        final user = User.fromJson(userJson, token);
+
+        // Redirection vers l'accueil avec l'objet user
         Navigator.pushReplacementNamed(context, '/home', arguments: user);
       } else {
         final error = json.decode(res.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error['message'] ?? 'Erreur connexion')),
+          SnackBar(content: Text(error['message'] ?? 'Erreur de connexion')),
         );
       }
     } catch (err) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $err')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Erreur: $err')));
     } finally {
       setState(() => loading = false);
     }
@@ -57,11 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Text(
                   'Diaspora e-Commerce',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    // Utilise la font système par défaut
-                  ),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 40),
