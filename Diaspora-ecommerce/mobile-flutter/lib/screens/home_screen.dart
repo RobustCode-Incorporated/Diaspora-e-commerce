@@ -30,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
         Uri.parse('http://localhost:4000/api/products'),
         headers: {'Content-Type': 'application/json'},
       );
-
       if (res.statusCode == 200) {
         final List data = json.decode(res.body);
         setState(() {
@@ -67,12 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Stack(
             alignment: Alignment.center,
             children: [
-              IconButton(
-                icon: Icon(Icons.shopping_cart),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/cart', arguments: cart);
-                },
-              ),
+              IconButton(icon: Icon(Icons.shopping_cart), onPressed: () {
+                Navigator.pushNamed(context, '/cart', arguments: cart);
+              }),
               if (cart.isNotEmpty)
                 Positioned(
                   right: 8,
@@ -80,10 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: CircleAvatar(
                     radius: 10,
                     backgroundColor: Colors.red,
-                    child: Text(
-                      cart.length.toString(),
-                      style: TextStyle(fontSize: 12, color: Colors.white),
-                    ),
+                    child: Text(cart.length.toString(), style: TextStyle(fontSize: 12, color: Colors.white)),
                   ),
                 ),
             ],
@@ -104,27 +97,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       final product = products[index];
                       return Card(
                         margin: EdgeInsets.only(bottom: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Image du produit
                             Container(
                               width: 120,
                               height: 120,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(8),
-                                  bottomLeft: Radius.circular(8),
-                                ),
-                                color: Colors.grey[200],
-                              ),
+                              color: Colors.grey[200],
                               child: product.imageUrl != null
                                   ? Image.network(
-                                      Uri.encodeFull(
-                                          'http://localhost:4000/uploads/${product.imageUrl!}'),
+                                      Uri.encodeFull('http://localhost:4000/uploads/${product.imageUrl!}'),
                                       fit: BoxFit.cover,
                                       errorBuilder: (context, error, stackTrace) =>
                                           Icon(Icons.broken_image, size: 50),
@@ -133,23 +114,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.all(12.0),
+                                padding: EdgeInsets.all(12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      product.name,
-                                      style: TextStyle(
-                                          fontSize: 18, fontWeight: FontWeight.bold),
-                                    ),
+                                    Text(product.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                                     SizedBox(height: 6),
                                     Text(product.description),
                                     SizedBox(height: 6),
-                                    Text(
-                                      '${product.price.toStringAsFixed(2)} €',
-                                      style: TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold),
-                                    ),
+                                    Text('${product.price.toStringAsFixed(2)} €',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     Align(
                                       alignment: Alignment.bottomRight,
                                       child: IconButton(
